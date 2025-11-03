@@ -109,25 +109,41 @@ const App: React.FC = () => {
                 } catch (error) {
                     console.error("Error deleting delegate:", error);
                     showToast('error', 'Error de Eliminación', 'No se pudo eliminar el registro.');
+                } finally {
+                    setMessageModal(prev => ({ ...prev, isOpen: false }));
                 }
             }
         );
     };
 
     const handleDeleteAllDelegates = () => {
+        const finalDeletion = async () => {
+            try {
+                await dbService.deleteAllDelegates();
+                showToast('success', 'Éxito', 'Todos los registros han sido eliminados.');
+                await fetchDelegates();
+            } catch (error) {
+                console.error("Error deleting all delegates:", error);
+                showToast('error', 'Error de Eliminación', 'No se pudieron eliminar todos los registros.');
+            } finally {
+                setMessageModal(prev => ({ ...prev, isOpen: false }));
+            }
+        };
+    
+        const secondConfirmation = () => {
+            setMessageModal(prev => ({
+                ...prev,
+                title: "Advertencia Final",
+                message: "Esta acción es irreversible. Si aceptas, deberás volver a cargar un archivo CSV o JSON para restaurar los datos. ¿Deseas continuar?",
+                onConfirm: finalDeletion,
+            }));
+        };
+    
+        // First confirmation
         showConfirmModal(
             "Confirmar Eliminación Total",
-            "¿Estás seguro de que quieres eliminar TODOS los registros? Esta acción es irreversible.",
-            async () => {
-                try {
-                    await dbService.deleteAllDelegates();
-                    showToast('success', 'Éxito', 'Todos los registros han sido eliminados.');
-                    await fetchDelegates();
-                } catch (error) {
-                    console.error("Error deleting all delegates:", error);
-                    showToast('error', 'Error de Eliminación', 'No se pudieron eliminar todos los registros.');
-                }
-            }
+            "¿Estás seguro de que quieres eliminar TODOS los registros de forma permanente?",
+            secondConfirmation
         );
     };
 

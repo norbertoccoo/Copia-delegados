@@ -16,7 +16,6 @@ const MessageModal: React.FC<MessageModalProps> = ({ isOpen, onClose, title, mes
         if (onConfirm) {
             onConfirm();
         }
-        onClose();
     };
 
     return (
