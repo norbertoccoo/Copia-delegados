@@ -9,3 +9,5 @@ export interface Delegate {
   sb: number;
   otros: number;
 }
+
+export type UnionKey = 'ccoo' | 'ugt' | 'sb' | 'otros';

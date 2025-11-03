@@ -117,18 +117,17 @@ export const importFromJson = (file: File): Promise<{ importedCount: number, ski
                 const delegatesToImport = JSON.parse(jsonContent);
 
                 if (!Array.isArray(delegatesToImport)) {
-                    return reject(new Error("El archivo JSON debe contener un array de registros."));
+                    throw new Error("El archivo JSON debe contener un array de registros.");
                 }
                 
                 if (delegatesToImport.length === 0) {
-                     return reject(new Error("El archivo JSON está vacío."));
+                     throw new Error("El archivo JSON está vacío.");
                 }
 
                 let importedCount = 0;
                 let skippedCount = 0;
                 
                 for (const delegateData of delegatesToImport) {
-                    // Basic validation
                     if (!delegateData.isla || !delegateData.nCentro) {
                         console.warn(`Skipping record with missing Isla or N. Centro: ${JSON.stringify(delegateData)}`);
                         skippedCount++;
@@ -149,15 +148,13 @@ export const importFromJson = (file: File): Promise<{ importedCount: number, ski
                         await dbService.addDelegate(delegateToAdd);
                         importedCount++;
                     } catch (error) {
-                       // This means it's a duplicate
                        skippedCount++;
                     }
                 }
                 resolve({ importedCount, skippedCount });
-
             } catch (error) {
                 if (error instanceof SyntaxError) {
-                    reject(new Error("El archivo no es un JSON válido."));
+                    reject(new Error("El contenido no es un JSON válido."));
                 } else {
                     reject(error);
                 }
@@ -167,7 +164,6 @@ export const importFromJson = (file: File): Promise<{ importedCount: number, ski
         reader.readAsText(file);
     });
 };
-
 
 export const exportToPdf = (delegates: Delegate[], isFiltered: boolean): void => {
     const { jsPDF } = window.jspdf;

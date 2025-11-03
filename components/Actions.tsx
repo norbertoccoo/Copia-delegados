@@ -12,7 +12,17 @@ interface ActionsProps {
     onSearchChange: (term: string) => void;
 }
 
-const Actions: React.FC<ActionsProps> = ({ onAdd, onExportJson, onImport, onExportPdf, onFilter, onSummary, onDeleteAll, searchTerm, onSearchChange }) => {
+const Actions: React.FC<ActionsProps> = ({ 
+    onAdd, 
+    onExportJson, 
+    onImport, 
+    onExportPdf, 
+    onFilter, 
+    onSummary, 
+    onDeleteAll, 
+    searchTerm, 
+    onSearchChange,
+}) => {
     const importInputRef = useRef<HTMLInputElement>(null);
 
     const handleImportClick = () => {
@@ -69,10 +79,8 @@ const Actions: React.FC<ActionsProps> = ({ onAdd, onExportJson, onImport, onExpo
                         Resumen
                     </button>
                     
-                    {/* Hidden input for CSV import */}
                     <input type="file" ref={importInputRef} accept=".csv,.json" className="hidden" onChange={handleFileChange} />
                     
-                    {/* Dropdown for Import/Export could be a future improvement */}
                     <button onClick={handleImportClick} className="btn btn-outline">Importar</button>
                     <button onClick={onExportJson} className="btn btn-outline">Exportar JSON</button>
                     <button onClick={onExportPdf} className="btn btn-outline">Exportar PDF</button>

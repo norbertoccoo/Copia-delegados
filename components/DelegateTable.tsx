@@ -1,5 +1,5 @@
 import React from 'react';
-import { Delegate } from '../types';
+import { Delegate, UnionKey } from '../types';
 import { getHoursPerComite, generateSubtotalReport } from '../utils/calculations';
 import EditableCell from './EditableCell';
 
@@ -10,6 +10,7 @@ interface DelegateTableProps {
     onDelete: (id: string) => void;
     sortConfig: { key: keyof Delegate; direction: 'ascending' | 'descending' } | null;
     onSort: (config: { key: keyof Delegate; direction: 'ascending' | 'descending' } | null) => void;
+    activeUnionFilter: UnionKey | null;
 }
 
 const SortIcon: React.FC<{ direction?: 'ascending' | 'descending' }> = ({ direction }) => {
@@ -65,10 +66,14 @@ const TableCell: React.FC<{ children: React.ReactNode, className?: string }> = (
     <td className={`p-3 border-b border-slate-200 text-sm text-slate-700 ${className}`}>{children}</td>
 );
 
-const DelegateTable: React.FC<DelegateTableProps> = ({ delegates, isFiltered, onUpdate, onDelete, sortConfig, onSort }) => {
+const DelegateTable: React.FC<DelegateTableProps> = ({ delegates, isFiltered, onUpdate, onDelete, sortConfig, onSort, activeUnionFilter }) => {
     
     const subtotal = isFiltered ? generateSubtotalReport(delegates) : null;
     
+    const baseColumnCount = 5; // Isla, N. Centro, Comité, Horas Totales, Acciones
+    const unionColumnCount = activeUnionFilter ? 2 : 8; // 2 for one union, 8 for all four
+    const colSpan = baseColumnCount + unionColumnCount;
+
     return (
         <div className="overflow-x-auto max-h-[70vh]">
             <table className="min-w-full divide-y divide-slate-200">
@@ -77,14 +82,24 @@ const DelegateTable: React.FC<DelegateTableProps> = ({ delegates, isFiltered, on
                         <TableHeader sortKey="isla" sortConfig={sortConfig} onSort={onSort}>Isla</TableHeader>
                         <TableHeader sortKey="nCentro" sortConfig={sortConfig} onSort={onSort}>N. Centro</TableHeader>
                         <TableHeader sortKey="comite" sortConfig={sortConfig} onSort={onSort} className="text-center">Comité</TableHeader>
-                        <TableHeader sortKey="ccoo" sortConfig={sortConfig} onSort={onSort} className="text-center">CCOO</TableHeader>
-                        <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Horas CCOO</TableHeader>
-                        <TableHeader sortKey="ugt" sortConfig={sortConfig} onSort={onSort} className="text-center">UGT</TableHeader>
-                        <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Horas UGT</TableHeader>
-                        <TableHeader sortKey="sb" sortConfig={sortConfig} onSort={onSort} className="text-center">SB</TableHeader>
-                        <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Horas SB</TableHeader>
-                        <TableHeader sortKey="otros" sortConfig={sortConfig} onSort={onSort} className="text-center">OTROS</TableHeader>
-                        <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Horas OTROS</TableHeader>
+                        
+                        {(!activeUnionFilter || activeUnionFilter === 'ccoo') && <>
+                            <TableHeader sortKey="ccoo" sortConfig={sortConfig} onSort={onSort} className="text-center">CCOO</TableHeader>
+                            <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Horas CCOO</TableHeader>
+                        </>}
+                        {(!activeUnionFilter || activeUnionFilter === 'ugt') && <>
+                            <TableHeader sortKey="ugt" sortConfig={sortConfig} onSort={onSort} className="text-center">UGT</TableHeader>
+                            <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Horas UGT</TableHeader>
+                        </>}
+                        {(!activeUnionFilter || activeUnionFilter === 'sb') && <>
+                            <TableHeader sortKey="sb" sortConfig={sortConfig} onSort={onSort} className="text-center">SB</TableHeader>
+                            <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Horas SB</TableHeader>
+                        </>}
+                        {(!activeUnionFilter || activeUnionFilter === 'otros') && <>
+                            <TableHeader sortKey="otros" sortConfig={sortConfig} onSort={onSort} className="text-center">OTROS</TableHeader>
+                            <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Horas OTROS</TableHeader>
+                        </>}
+
                         <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Horas Totales</TableHeader>
                         <TableHeader className="text-center" sortConfig={sortConfig} onSort={onSort}>Acciones</TableHeader>
                     </tr>
@@ -104,14 +119,24 @@ const DelegateTable: React.FC<DelegateTableProps> = ({ delegates, isFiltered, on
                                     <EditableCell id={delegate.id} field="isla" value={delegate.isla} onUpdate={onUpdate} />
                                     <EditableCell id={delegate.id} field="nCentro" value={delegate.nCentro} onUpdate={onUpdate} />
                                     <EditableCell id={delegate.id} field="comite" value={delegate.comite} onUpdate={onUpdate} type="comite" align="center" />
-                                    <EditableCell id={delegate.id} field="ccoo" value={delegate.ccoo} onUpdate={onUpdate} type="number" align="center" />
-                                    <TableCell className="text-center font-medium text-teal-700">{ccooHours}h</TableCell>
-                                    <EditableCell id={delegate.id} field="ugt" value={delegate.ugt} onUpdate={onUpdate} type="number" align="center" />
-                                    <TableCell className="text-center font-medium text-teal-700">{ugtHours}h</TableCell>
-                                    <EditableCell id={delegate.id} field="sb" value={delegate.sb} onUpdate={onUpdate} type="number" align="center" />
-                                    <TableCell className="text-center font-medium text-teal-700">{sbHours}h</TableCell>
-                                    <EditableCell id={delegate.id} field="otros" value={delegate.otros} onUpdate={onUpdate} type="number" align="center" />
-                                    <TableCell className="text-center font-medium text-teal-700">{otrosHours}h</TableCell>
+                                    
+                                    {(!activeUnionFilter || activeUnionFilter === 'ccoo') && <>
+                                        <EditableCell id={delegate.id} field="ccoo" value={delegate.ccoo} onUpdate={onUpdate} type="number" align="center" />
+                                        <TableCell className="text-center font-medium text-teal-700">{ccooHours}h</TableCell>
+                                    </>}
+                                    {(!activeUnionFilter || activeUnionFilter === 'ugt') && <>
+                                        <EditableCell id={delegate.id} field="ugt" value={delegate.ugt} onUpdate={onUpdate} type="number" align="center" />
+                                        <TableCell className="text-center font-medium text-teal-700">{ugtHours}h</TableCell>
+                                    </>}
+                                    {(!activeUnionFilter || activeUnionFilter === 'sb') && <>
+                                        <EditableCell id={delegate.id} field="sb" value={delegate.sb} onUpdate={onUpdate} type="number" align="center" />
+                                        <TableCell className="text-center font-medium text-teal-700">{sbHours}h</TableCell>
+                                    </>}
+                                    {(!activeUnionFilter || activeUnionFilter === 'otros') && <>
+                                        <EditableCell id={delegate.id} field="otros" value={delegate.otros} onUpdate={onUpdate} type="number" align="center" />
+                                        <TableCell className="text-center font-medium text-teal-700">{otrosHours}h</TableCell>
+                                    </>}
+
                                     <TableCell className="text-center font-bold text-slate-800">{totalHours}h</TableCell>
                                     <TableCell className="text-center">
                                         <button 
@@ -129,7 +154,7 @@ const DelegateTable: React.FC<DelegateTableProps> = ({ delegates, isFiltered, on
                         })
                     ) : (
                         <tr>
-                            <td colSpan={13} className="text-center text-slate-500 py-16">
+                            <td colSpan={colSpan} className="text-center text-slate-500 py-16">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
@@ -145,14 +170,24 @@ const DelegateTable: React.FC<DelegateTableProps> = ({ delegates, isFiltered, on
                             <TableCell className="text-left">TOTAL FILTRADO</TableCell>
                             <TableCell>{''}</TableCell>
                             <TableCell className="text-center">{subtotal.totalComiteSum}</TableCell>
-                            <TableCell className="text-center">{subtotal.totalCcooDelegates}</TableCell>
-                            <TableCell className="text-center">{subtotal.totalCcooHours}h</TableCell>
-                            <TableCell className="text-center">{subtotal.totalUgtDelegates}</TableCell>
-                            <TableCell className="text-center">{subtotal.totalUgtHours}h</TableCell>
-                            <TableCell className="text-center">{subtotal.totalSbDelegates}</TableCell>
-                            <TableCell className="text-center">{subtotal.totalSbHours}h</TableCell>
-                            <TableCell className="text-center">{subtotal.totalOtrosDelegates}</TableCell>
-                            <TableCell className="text-center">{subtotal.totalOtrosHours}h</TableCell>
+                            
+                            {(!activeUnionFilter || activeUnionFilter === 'ccoo') && <>
+                                <TableCell className="text-center">{subtotal.totalCcooDelegates}</TableCell>
+                                <TableCell className="text-center">{subtotal.totalCcooHours}h</TableCell>
+                            </>}
+                            {(!activeUnionFilter || activeUnionFilter === 'ugt') && <>
+                                <TableCell className="text-center">{subtotal.totalUgtDelegates}</TableCell>
+                                <TableCell className="text-center">{subtotal.totalUgtHours}h</TableCell>
+                            </>}
+                            {(!activeUnionFilter || activeUnionFilter === 'sb') && <>
+                                <TableCell className="text-center">{subtotal.totalSbDelegates}</TableCell>
+                                <TableCell className="text-center">{subtotal.totalSbHours}h</TableCell>
+                            </>}
+                             {(!activeUnionFilter || activeUnionFilter === 'otros') && <>
+                                <TableCell className="text-center">{subtotal.totalOtrosDelegates}</TableCell>
+                                <TableCell className="text-center">{subtotal.totalOtrosHours}h</TableCell>
+                            </>}
+
                             <TableCell className="text-center">{subtotal.totalCalculatedHoursSum}h</TableCell>
                             <TableCell>{''}</TableCell>
                         </tr>

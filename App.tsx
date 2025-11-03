@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Delegate } from './types';
+import { Delegate, UnionKey } from './types';
 import * as dbService from './services/dbService';
 import * as fileService from './services/fileService';
 import Header from './components/Header';
@@ -18,6 +18,7 @@ const App: React.FC = () => {
     const [filters, setFilters] = useState({ isla: 'TODAS' });
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: keyof Delegate; direction: 'ascending' | 'descending' } | null>(null);
+    const [unionFilter, setUnionFilter] = useState<UnionKey | null>(null);
     
     const [isFilterModalOpen, setFilterModalOpen] = useState(false);
     const [isSummaryModalOpen, setSummaryModalOpen] = useState(false);
@@ -67,7 +68,6 @@ const App: React.FC = () => {
         initializeApp();
     }, [fetchDelegates]);
     
-
     const showConfirmModal = (title: string, message: string, onConfirm: () => void) => {
         setMessageModal({ isOpen: true, title, message, isConfirm: true, onConfirm });
     };
@@ -195,8 +195,16 @@ const App: React.FC = () => {
             showToast("error", "Error de Exportación", "Hubo un error al generar el PDF.");
         }
     };
+    
+    const handleUnionFilterChange = (union: UnionKey) => {
+        setUnionFilter(prev => (prev === union ? null : union));
+    };
 
-    const isFiltered = useMemo(() => filters.isla !== 'TODAS' || searchTerm !== '', [filters, searchTerm]);
+    const handleClearUnionFilter = () => {
+        setUnionFilter(null);
+    };
+
+    const isFiltered = useMemo(() => filters.isla !== 'TODAS' || searchTerm !== '' || unionFilter !== null, [filters, searchTerm, unionFilter]);
 
     const filteredDelegates = useMemo(() => {
         let processDelegates = [...delegates];
@@ -211,6 +219,10 @@ const App: React.FC = () => {
                 d.isla.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
+        
+        if (unionFilter) {
+            processDelegates = processDelegates.filter(d => d[unionFilter] > 0);
+        }
 
         if (sortConfig !== null) {
             processDelegates.sort((a, b) => {
@@ -223,7 +235,7 @@ const App: React.FC = () => {
         }
         
         return processDelegates;
-    }, [delegates, filters, searchTerm, sortConfig]);
+    }, [delegates, filters, searchTerm, sortConfig, unionFilter]);
 
     return (
         <div className="min-h-screen flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8">
@@ -233,7 +245,10 @@ const App: React.FC = () => {
                 <Dashboard 
                     delegates={delegates} 
                     filteredDelegates={filteredDelegates} 
-                    isFiltered={isFiltered} 
+                    isFiltered={isFiltered}
+                    activeUnionFilter={unionFilter}
+                    onUnionFilterChange={handleUnionFilterChange}
+                    onClearUnionFilter={handleClearUnionFilter}
                 />
                 <main className="bg-white rounded-xl shadow-md overflow-hidden mt-8">
                      <Actions
@@ -260,6 +275,7 @@ const App: React.FC = () => {
                             onDelete={handleDeleteDelegate}
                             sortConfig={sortConfig}
                             onSort={setSortConfig}
+                            activeUnionFilter={unionFilter}
                         />
                     )}
                 </main>
