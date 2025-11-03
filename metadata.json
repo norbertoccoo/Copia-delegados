@@ -1,0 +1,5 @@
+{
+  "name": "Copy of Delegados_Dinosol",
+  "description": "Una aplicación para gestionar y visualizar los delegados de la sección sindical de Dinosol Supermercados S.L., permitiendo el seguimiento de horas, la edición de datos y la generación de informes.",
+  "requestFramePermissions": []
+}
